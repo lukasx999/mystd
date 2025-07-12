@@ -58,8 +58,6 @@ UniquePtr<T> my_make_unique(Args&&... args) {
     return UniquePtr<T>(new T(std::forward<Args>(args)...));
 }
 
-
-
 int main() {
 
     UniquePtr foo = my_make_unique<int>(1);
