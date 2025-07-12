@@ -22,15 +22,19 @@ public:
         free(m_items);
     }
 
-    void push_back(T const& x) {
-
+    template <typename... Args>
+    void emplace_back(Args&&... args) {
         if (m_len >= m_cap) {
             m_cap *= 2;
             m_items = static_cast<T*>(realloc(m_items, sizeof(T) * m_cap));
         }
 
         // not using assignment, as T might not implement operator=()
-        new (&m_items[m_len++]) T(x);
+        new (&m_items[m_len++]) T(std::forward<Args>(args)...);
+    }
+
+    void push_back(T const& x) {
+        emplace_back(x);
     }
 
     void clear() {
