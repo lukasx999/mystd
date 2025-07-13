@@ -3,8 +3,12 @@
 #include <utility>
 
 template <typename T>
+using DefaultDeleter = decltype([](T* ptr) { delete ptr; });
+
+template <typename T, typename Deleter = DefaultDeleter<T>>
 class UniquePtr {
     T* m_ptr = nullptr;
+    Deleter m_del;
 
 public:
     UniquePtr() = default;
@@ -12,7 +16,7 @@ public:
     explicit UniquePtr(T* ptr) : m_ptr(ptr) { }
 
     ~UniquePtr() {
-        delete m_ptr;
+        m_del(m_ptr);
     }
 
     UniquePtr(UniquePtr const&) = delete;
@@ -38,7 +42,7 @@ public:
     }
 
     void reset(T* ptr) {
-        delete m_ptr;
+        m_del(m_ptr);
         m_ptr = ptr;
     }
 
@@ -54,7 +58,7 @@ public:
 
 template <typename T, typename... Args>
 [[nodiscard]] static constexpr inline
-UniquePtr<T> my_make_unique(Args&&... args) {
+auto my_make_unique(Args&&... args) {
     return UniquePtr<T>(new T(std::forward<Args>(args)...));
 }
 
@@ -71,5 +75,8 @@ int main() {
     baz = std::move(bar);
     assert(*baz == 1);
     assert(bar.get() == nullptr);
+
+    int x = 45;
+    UniquePtr<int, decltype([](int*){})> qux(&x);
 
 }
